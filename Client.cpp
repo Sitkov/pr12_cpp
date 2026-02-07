@@ -5,39 +5,39 @@
 using namespace std;
 
 #define MUTEX L"printer"
+#define EVENT L"event"
 
 int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    HANDLE hMutex = OpenMutex(SYNCHRONIZE, FALSE, MUTEX);
+    //HANDLE hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, EVENT);
+    HANDLE hMutex = OpenMutex(SYNCHRONIZE, FALSE, L"printer");
+    if (!hMutex) {
+        cout << "Принтер не включен" << endl;
+    }
+
+    while (true) {
+        cout << "\n1. Отправить на печать" << endl;
+        cout << "Любая клавиша = Выйти\n" << endl;
+
+        char input = _getch();
+        if (input != '1') {
+            cout << "Пока!" << endl;
+            break;
+        }
+        WaitForSingleObject(hMutex, INFINITE);
+        cout << "Отправил в очередь" << endl;
+
+
+        ReleaseMutex(hMutex);
+
+        WaitForSingleObject(hMutex, INFINITE);
+
+        cout << "Печать завершена!!!\n" << endl;
+
+        ReleaseMutex(hMutex);
+    }
     if (!hMutex)
-    {
-        cout << "Принтер не найден!\n";
-        return GetLastError();
-    }
-
-    while (true)
-    {
-        cout << "\n1 - Отправить на печать \nЛюбая клавиша - выход" << endl << endl;
-        char c = _getch();
-        if (c != '1') break;
-
-        WaitForSingleObject(hMutex, INFINITE);
-
-        cout << "Отправил печатать" << endl;
-
-        ReleaseMutex(hMutex);
-
-        cout << "Ожидание завершения печати..." << endl;
-
-        WaitForSingleObject(hMutex, INFINITE);
-
-        cout << "Печать завершена" << endl;
-
-        ReleaseMutex(hMutex);
-    }
-
-    CloseHandle(hMutex);
-    return 0;
+        CloseHandle(hMutex);
 }
